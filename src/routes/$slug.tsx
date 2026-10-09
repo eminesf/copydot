@@ -32,7 +32,13 @@ import type { Item, RoomEvent } from '../lib/types'
 import { Logo, QrFloat, shareOrCopy, useCurrentUrl, useQr, useToast } from '../components/ui'
 
 export const Route = createFileRoute('/$slug')({
-  head: ({ params }) => ({ meta: [{ title: `${params.slug} · copy` }] }),
+  head: ({ params }) => ({
+    meta: [
+      { title: `${params.slug} · copy.` },
+      // Salas são temporárias e privadas: nunca devem aparecer no Google.
+      { name: 'robots', content: 'noindex, nofollow' },
+    ],
+  }),
   component: RoomPage,
 })
 
