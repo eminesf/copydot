@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ArrowRight, Dices, Lock, Timer, Zap } from 'lucide-react'
 import { enterRoom } from '../lib/api'
 import { SLUG_RE, errorMessage, normalizeSlug, randomSlug, saveToken } from '../lib/client'
-import { Logo, QrFloat, useCurrentUrl, useToast } from '../components/ui'
+import { Footer, QrFloat, useCurrentUrl, useToast } from '../components/ui'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -39,11 +39,10 @@ function Home() {
 
   return (
     <div className="home">
-      <header className="site-header">
-        <Logo />
-      </header>
-
       <main className="hero">
+        <p className="wordmark" aria-label="copy.">
+          copy<b>.</b>
+        </p>
         <h1>
           Cole aqui.
           <br />
@@ -135,6 +134,7 @@ function Home() {
         </ul>
       </main>
 
+      <Footer />
       <QrFloat url={url} label="Abra no celular" onNotify={notify} />
       {toast}
     </div>

@@ -178,8 +178,8 @@ button {
 
 .logo {
   font-family: var(--mono);
-  font-weight: 700;
-  font-size: 18px;
+  font-weight: 800;
+  font-size: 20px;
   color: var(--text);
   text-decoration: none;
   letter-spacing: -0.02em;
@@ -218,9 +218,28 @@ button {
   text-align: center;
 }
 
+.wordmark {
+  margin: 0 0 20px;
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: clamp(3.6rem, 14vw, 6rem);
+  line-height: 1;
+  letter-spacing: -0.06em;
+  background: linear-gradient(180deg, var(--text) 30%, color-mix(in srgb, var(--text) 55%, var(--accent)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.wordmark b {
+  color: var(--accent);
+  -webkit-text-fill-color: var(--accent);
+  font-weight: 800;
+}
+
 .hero h1 {
   margin: 0;
-  font-size: clamp(2.1rem, 7vw, 3.4rem);
+  font-size: clamp(1.7rem, 5.5vw, 2.6rem);
   line-height: 1.05;
   font-weight: 800;
   letter-spacing: -0.045em;
@@ -408,6 +427,50 @@ input:focus-visible + .switch {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 20px;
+  padding: 20px 20px max(20px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.site-footer b {
+  color: var(--text);
+}
+
+.site-footer nav {
+  display: flex;
+  gap: 4px;
+}
+
+.site-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s, background 0.15s;
+}
+
+.site-footer a:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+/* na home o QR fica acima do rodapé */
+.home .qr-float {
+  bottom: 96px;
 }
 
 /* ---------- QR flutuante (desktop) ---------- */
