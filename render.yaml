@@ -1,0 +1,12 @@
+# Blueprint do Render: New → Blueprint → escolha este repositório.
+services:
+  - type: web
+    name: copydot
+    runtime: node
+    plan: free
+    # --include=dev: vite/typescript são devDependencies e são necessários no build
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    # Salas ficam em memória: precisa ser 1 instância só.
+    numInstances: 1

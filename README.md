@@ -13,11 +13,25 @@ npm start        # roda a versão de produção (PORT=3000 por padrão)
 **No celular:** com o PC e o celular no mesmo Wi-Fi, abra o endereço "Network" que o
 `npm run dev` mostra (ex: `http://192.168.5.12:3000`) ou leia o QR code dentro da sala.
 
-## Deploy (Railway)
+## Deploy
 
-O app guarda as salas em memória, então precisa de **um servidor Node sempre ligado com uma
-única instância** (Railway, Render, Fly.io). Serverless, como na Vercel, não funciona sem
-adaptar o código.
+O app guarda as salas em memória, então precisa de **um servidor Node com uma única instância**
+(Render, Railway, Fly.io). Serverless, como na Vercel, não funciona sem adaptar o código.
+
+### Render (grátis)
+
+1. No Render: **New → Blueprint** → escolha este repositório. O `render.yaml` já configura
+   tudo (plano free, build, start, `/api/health`).
+2. O plano grátis **desliga o servidor após 15 min sem requisições** e leva cerca de 1 min para
+   religar. Para ele nunca dormir, crie um monitor grátis no [UptimeRobot](https://uptimerobot.com)
+   (ou cron-job.org):
+   - Tipo **HTTP(s)**, URL `https://SEU-APP.onrender.com/api/health`, intervalo **5 minutos**.
+3. Com a sala aberta, o app também faz um ping a cada 4 min, então ele não dorme durante o uso
+   mesmo sem o monitor.
+4. São 750 h grátis por mês por conta. Um serviço ligado 24h usa ~730 h, então ele precisa ser
+   o **único** serviço grátis da conta.
+
+### Railway
 
 1. No Railway: **New Project → Deploy from GitHub repo** → escolha este repositório.
 2. O Railway detecta o Node e roda `npm run build` e depois `npm start`. A porta vem da variável `PORT`,

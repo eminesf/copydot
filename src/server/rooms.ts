@@ -44,12 +44,17 @@ function newId() {
   return randomBytes(8).toString('hex')
 }
 
-/** Entra na sala; cria se não existir. Quem cria define a senha. */
-export function enterRoom(slug: string, password: string) {
+/**
+ * Entra na sala. Com `create`, cria se não existir (quem cria define a senha).
+ * Sem `create` (reconexão automática), uma sala que sumiu dá NOT_FOUND. Isso evita
+ * recriar sozinha, sem senha, uma sala que tinha senha antes de o servidor reiniciar.
+ */
+export function enterRoom(slug: string, password: string, create: boolean) {
   if (!SLUG_RE.test(slug)) throw new RoomError('INVALID_SLUG', 400)
 
   let room = rooms.get(slug)
   let created = false
+  if (!room && !create) throw new RoomError('NOT_FOUND', 404)
   if (!room) {
     room = {
       slug,

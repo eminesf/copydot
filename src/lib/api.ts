@@ -21,11 +21,12 @@ function run<T>(fn: () => T): T {
 }
 
 export const enterRoom = createServerFn({ method: 'POST' })
-  .validator((d: { slug: string; password: string }) => ({
+  .validator((d: { slug: string; password: string; create: boolean }) => ({
     slug: str(d.slug, 'slug'),
     password: str(d.password, 'password'),
+    create: d.create === true,
   }))
-  .handler(({ data }) => run(() => rooms.enterRoom(data.slug, data.password)))
+  .handler(({ data }) => run(() => rooms.enterRoom(data.slug, data.password, data.create)))
 
 export const sendText = createServerFn({ method: 'POST' })
   .validator((d: Auth & { by: string; text: string }) => ({

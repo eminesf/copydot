@@ -27,7 +27,7 @@ function Home() {
     setBusy(true)
     setError('')
     try {
-      const { token } = await enterRoom({ data: { slug, password: withPassword ? password : '' } })
+      const { token } = await enterRoom({ data: { slug, password: withPassword ? password : '', create: true } })
       saveToken(slug, token)
       await navigate({ to: '/$slug', params: { slug } })
     } catch (err) {

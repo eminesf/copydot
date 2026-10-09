@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SlugRouteImport } from './routes/$slug'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiRoomsSlugEventsRouteImport } from './routes/api/rooms/$slug/events'
 import { Route as ApiRoomsSlugUploadRouteImport } from './routes/api/rooms/$slug/upload'
 import { Route as ApiRoomsSlugFilesIdRouteImport } from './routes/api/rooms/$slug/files.$id'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
 const SlugRoute = SlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRoomsSlugEventsRoute = ApiRoomsSlugEventsRouteImport.update({
@@ -44,6 +50,7 @@ const ApiRoomsSlugFilesIdRoute = ApiRoomsSlugFilesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/rooms/$slug/events': typeof ApiRoomsSlugEventsRoute
   '/api/rooms/$slug/upload': typeof ApiRoomsSlugUploadRoute
   '/api/rooms/$slug/files/$id': typeof ApiRoomsSlugFilesIdRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/rooms/$slug/events': typeof ApiRoomsSlugEventsRoute
   '/api/rooms/$slug/upload': typeof ApiRoomsSlugUploadRoute
   '/api/rooms/$slug/files/$id': typeof ApiRoomsSlugFilesIdRoute
@@ -59,6 +67,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/rooms/$slug/events': typeof ApiRoomsSlugEventsRoute
   '/api/rooms/$slug/upload': typeof ApiRoomsSlugUploadRoute
   '/api/rooms/$slug/files/$id': typeof ApiRoomsSlugFilesIdRoute
@@ -68,6 +77,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$slug'
+    | '/api/health'
     | '/api/rooms/$slug/events'
     | '/api/rooms/$slug/upload'
     | '/api/rooms/$slug/files/$id'
@@ -75,6 +85,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$slug'
+    | '/api/health'
     | '/api/rooms/$slug/events'
     | '/api/rooms/$slug/upload'
     | '/api/rooms/$slug/files/$id'
@@ -82,6 +93,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$slug'
+    | '/api/health'
     | '/api/rooms/$slug/events'
     | '/api/rooms/$slug/upload'
     | '/api/rooms/$slug/files/$id'
@@ -90,6 +102,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiRoomsSlugEventsRoute: typeof ApiRoomsSlugEventsRoute
   ApiRoomsSlugUploadRoute: typeof ApiRoomsSlugUploadRoute
   ApiRoomsSlugFilesIdRoute: typeof ApiRoomsSlugFilesIdRoute
@@ -109,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/$slug'
       fullPath: '/$slug'
       preLoaderRoute: typeof SlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/rooms/$slug/events': {
@@ -138,6 +158,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiRoomsSlugEventsRoute: ApiRoomsSlugEventsRoute,
   ApiRoomsSlugUploadRoute: ApiRoomsSlugUploadRoute,
   ApiRoomsSlugFilesIdRoute: ApiRoomsSlugFilesIdRoute,

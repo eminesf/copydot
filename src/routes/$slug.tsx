@@ -14,6 +14,7 @@ import {
   Paperclip,
   QrCode,
   Share2,
+  Timer,
   Trash2,
 } from 'lucide-react'
 import { clearRoom, deleteItem, enterRoom, sendText } from '../lib/api'
@@ -35,28 +36,37 @@ export const Route = createFileRoute('/$slug')({
   component: RoomPage,
 })
 
-type Phase = 'entering' | 'password' | 'ready' | 'invalid'
+type Phase = 'entering' | 'password' | 'ready' | 'invalid' | 'expired'
 type Conn = 'connecting' | 'online' | 'offline'
+
+// Ping leve a cada 4 min com a sala aberta: hospedagens grátis (ex: Render)
+// desligam o servidor após 15 min sem requisições chegando.
+const KEEPALIVE_MS = 4 * 60 * 1000
 
 function RoomPage() {
   const { slug } = Route.useParams()
   const [phase, setPhase] = useState<Phase>('entering')
   const [token, setToken] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const lastCreate = useRef(true)
 
-  // 1) Conseguir um token: reaproveita o da sessão ou entra (sem senha).
+  // 1) Conseguir um token. `create` = pode criar a sala se ela não existir.
   const enter = useCallback(
-    async (password = '') => {
+    async (password: string, create: boolean) => {
+      lastCreate.current = create
       setError('')
       try {
-        const res = await enterRoom({ data: { slug, password } })
+        const res = await enterRoom({ data: { slug, password, create } })
         saveToken(slug, res.token)
         setToken(res.token)
         setPhase('ready')
       } catch (err) {
-        if (err instanceof Error && err.message === 'WRONG_PASSWORD') {
+        const code = err instanceof Error ? err.message : ''
+        if (code === 'WRONG_PASSWORD') {
           setPhase('password')
           if (password) setError(errorMessage(err))
+        } else if (code === 'NOT_FOUND') {
+          setPhase('expired')
         } else {
           setError(errorMessage(err))
         }
@@ -72,17 +82,43 @@ function RoomPage() {
       setToken(saved)
       setPhase('ready')
     } else {
+      // Abrir um link novo cria a sala, igual a digitar o nome na home.
       setPhase('entering')
-      enter()
+      enter('', true)
     }
   }, [slug, enter])
 
+  // A conexão foi recusada (servidor reiniciou ou sala expirou). Tenta reentrar
+  // SEM criar: se a sala sumiu, mostramos "expirou" em vez de recriar sem senha.
   const expire = useCallback(() => {
     forgetToken(slug)
     setToken(null)
     setPhase('entering')
-    enter()
+    enter('', false)
   }, [slug, enter])
+
+  if (phase === 'expired') {
+    return (
+      <div className="center-screen">
+        <div className="gate">
+          <Logo />
+          <h1>
+            <Timer size={18} /> Este espaço expirou
+          </h1>
+          <p style={{ margin: 0, color: 'var(--muted)', fontSize: 14 }}>
+            Ele foi apagado porque ficou sem ninguém conectado ou o servidor reiniciou. O conteúdo não pode ser
+            recuperado.
+          </p>
+          <button className="btn btn-primary" onClick={() => enter('', true)}>
+            Criar <span className="mono">{slug}</span> de novo
+          </button>
+          <Link to="/" className="btn">
+            Voltar ao início
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   if (phase === 'invalid') {
     return (
@@ -97,7 +133,7 @@ function RoomPage() {
     )
   }
 
-  if (phase === 'password') return <PasswordGate slug={slug} error={error} onSubmit={enter} />
+  if (phase === 'password') return <PasswordGate slug={slug} error={error} onSubmit={(pw) => enter(pw, true)} />
 
   if (phase === 'entering' || !token) {
     return (
@@ -105,7 +141,7 @@ function RoomPage() {
         {error ? (
           <div>
             <p>{error}</p>
-            <button className="btn" onClick={() => enter()}>
+            <button className="btn" onClick={() => enter('', lastCreate.current)}>
               Tentar de novo
             </button>
           </div>
@@ -212,7 +248,11 @@ function Room({ slug, token, onExpired }: { slug: string; token: string; onExpir
 
     connect()
     document.addEventListener('visibilitychange', onVisible)
+    const keepalive = setInterval(() => {
+      fetch('/api/health', { cache: 'no-store' }).catch(() => {})
+    }, KEEPALIVE_MS)
     return () => {
+      clearInterval(keepalive)
       clearTimeout(retry)
       document.removeEventListener('visibilitychange', onVisible)
       es?.close()
