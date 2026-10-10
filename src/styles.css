@@ -60,6 +60,14 @@ body {
   color: var(--text);
   font: 15px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
+  /* Esconde o cursor piscante ao clicar em texto comum (navegação por cursor / F7). */
+  caret-color: transparent;
+}
+
+input,
+textarea,
+[contenteditable] {
+  caret-color: auto;
 }
 
 a {
