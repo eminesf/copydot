@@ -11,7 +11,7 @@ export const Route = createRootRoute({
       // viewport-fit=cover + env(safe-area-inset-*) no CSS = respeita o notch do iPhone
       { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
       // Padrões; cada rota pode sobrescrever (a última definição vence).
-      { title: SEO_TITLE },
+      { title: 'copy.' },
       { name: 'description', content: SEO_DESCRIPTION },
       // Prévia ao compartilhar o link (WhatsApp, LinkedIn, X...).
       { property: 'og:site_name', content: 'copy.' },

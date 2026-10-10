@@ -34,7 +34,7 @@ import { Logo, QrFloat, shareOrCopy, useCurrentUrl, useQr, useToast } from '../c
 export const Route = createFileRoute('/$slug')({
   head: ({ params }) => ({
     meta: [
-      { title: `${params.slug} · copy.` },
+      { title: `copy. - ${params.slug}` },
       // Salas são temporárias e privadas: nunca devem aparecer no Google.
       { name: 'robots', content: 'noindex, nofollow' },
     ],
