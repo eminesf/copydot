@@ -3,7 +3,7 @@
 /** Endereço oficial (canonical). O Google trata outros endereços (ex: .onrender.com) como cópia. */
 export const SITE_URL = 'https://copydot.com.br'
 
-export const SEO_TITLE = 'Área de transferência online: copie do celular para o PC | copy.'
+export const SEO_TITLE = 'copy.'
 export const SEO_DESCRIPTION =
   'Copie e cole texto, imagens, prints e arquivos entre celular e computador em tempo real. Grátis, sem cadastro e sem instalar app. Funciona no iPhone, Android, Windows e Mac.'
 
