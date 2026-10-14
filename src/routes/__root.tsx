@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router'
 import css from '../styles.css?url'
 import { SEO_DESCRIPTION, SEO_TITLE, SITE_URL } from '../lib/seo'
+import { THEME_SCRIPT } from '../components/ui'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -43,8 +44,10 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR">
+    // suppressHydrationWarning: o THEME_SCRIPT mexe no data-theme antes do React hidratar.
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <HeadContent />
       </head>
       <body>

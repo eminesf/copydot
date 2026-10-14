@@ -1,9 +1,10 @@
 // Página da sala: /$slug (ex: /meu-espaco). "$slug" vira params.slug.
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
   Camera,
   Check,
+  CodeXml,
   Copy,
   Download,
   FileText,
@@ -29,7 +30,8 @@ import {
   saveToken,
 } from '../lib/client'
 import type { Item, RoomEvent } from '../lib/types'
-import { Logo, QrFloat, shareOrCopy, useCurrentUrl, useQr, useToast } from '../components/ui'
+import { LANGUAGES, fence, highlight, parseMessage } from '../lib/code'
+import { Logo, QrFloat, ThemeToggle, shareOrCopy, useCurrentUrl, useQr, useToast } from '../components/ui'
 
 export const Route = createFileRoute('/$slug')({
   head: ({ params }) => ({
@@ -377,6 +379,7 @@ function Room({ slug, token, onExpired }: { slug: string; token: string; onExpir
             {status}
           </span>
           <span className="spacer" />
+          <ThemeToggle />
           <button className="btn btn-ghost btn-icon mobile-only" aria-label="Conectar outro aparelho" onClick={() => setSheet(true)}>
             <QrCode size={20} />
           </button>
@@ -475,6 +478,9 @@ function Composer(props: {
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [armed, setArmed] = useState(false)
+  // Modo código: o texto vai como ```lang ... ``` e aparece formatado.
+  const [code, setCode] = useState(false)
+  const [lang, setLang] = useState('')
   const ref = useRef<HTMLTextAreaElement>(null)
 
   // Cresce com o texto até 200px.
@@ -494,9 +500,48 @@ function Composer(props: {
   async function send() {
     if (!text.trim() || sending) return
     setSending(true)
-    if (await props.onSend(text)) setText('')
+    if (await props.onSend(code ? fence(text, lang) : text)) setText('')
     setSending(false)
     ref.current?.focus()
+  }
+
+  function toggleCode() {
+    setCode(!code)
+    ref.current?.focus()
+  }
+
+  // Igual ao Teams: digitar ``` numa caixa vazia liga o modo código.
+  function onChange(value: string) {
+    if (!code && value === '```') {
+      setCode(true)
+      setText('')
+    } else setText(value)
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.nativeEvent.isComposing) return
+    const el = e.currentTarget
+    if (code) {
+      // No código, Enter quebra linha; Ctrl/Cmd+Enter envia; Tab indenta.
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault()
+        send()
+      } else if (e.key === 'Tab' && !e.shiftKey) {
+        e.preventDefault()
+        el.setRangeText('  ', el.selectionStart, el.selectionEnd, 'end')
+        setText(el.value)
+      } else if (e.key === 'Escape' || (e.key === 'Backspace' && !text)) {
+        setCode(false)
+      }
+      return
+    }
+    // No computador: Enter envia, Shift+Enter quebra linha.
+    // No celular o Enter do teclado quebra linha e o botão envia.
+    const touch = window.matchMedia('(pointer: coarse)').matches
+    if (e.key === 'Enter' && !e.shiftKey && !touch) {
+      e.preventDefault()
+      send()
+    }
   }
 
   const pick = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -525,6 +570,24 @@ function Composer(props: {
           <Camera size={16} /> <span className="lbl">Câmera</span>
           <input type="file" accept="image/*" capture="environment" hidden onChange={pick} />
         </label>
+        <button
+          type="button"
+          className={`btn btn-ghost btn-sm${code ? ' active' : ''}`}
+          title="Bloco de código (ou digite ```)"
+          aria-pressed={code}
+          onClick={toggleCode}
+        >
+          <CodeXml size={16} /> <span className="lbl">Código</span>
+        </button>
+        {code && (
+          <select className="lang-select" aria-label="Linguagem" value={lang} onChange={(e) => setLang(e.target.value)}>
+            {LANGUAGES.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.label}
+              </option>
+            ))}
+          </select>
+        )}
         <span className="spacer" />
         {props.canClear && (
           <button
@@ -555,23 +618,21 @@ function Composer(props: {
 
       <textarea
         ref={ref}
-        aria-label="Texto para compartilhar"
+        aria-label={code ? 'Código para compartilhar' : 'Texto para compartilhar'}
+        className={code ? 'code' : undefined}
         value={text}
         rows={1}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          // No computador: Enter envia, Shift+Enter quebra linha.
-          // No celular o Enter do teclado quebra linha e o botão envia.
-          const touch = window.matchMedia('(pointer: coarse)').matches
-          if (e.key === 'Enter' && !e.shiftKey && !touch && !e.nativeEvent.isComposing) {
-            e.preventDefault()
-            send()
-          }
-        }}
-        placeholder="Digite ou cole aqui…"
+        spellCheck={!code}
+        autoCapitalize={code ? 'none' : undefined}
+        autoCorrect={code ? 'off' : undefined}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
+        placeholder={code ? 'Cole ou digite o código…' : 'Digite ou cole aqui…'}
       />
       <div className="bottom">
-        <span className="hint desktop-only">Enter envia · Shift+Enter nova linha</span>
+        <span className="hint desktop-only">
+          {code ? 'Ctrl+Enter envia · Enter nova linha · Tab indenta' : 'Enter envia · Shift+Enter nova linha · ``` código'}
+        </span>
         <span className="hint mobile-only" />
         <button type="submit" className="btn btn-primary" disabled={!text.trim() || sending}>
           Enviar
@@ -599,30 +660,65 @@ function Linkified({ text }: { text: string }) {
   )
 }
 
-function Message(props: { item: Item; mine: boolean; fileUrl: string; onDelete: () => void; onNotify: (m: string) => void }) {
-  const { item } = props
+/** Botão "Copiar" que vira "Copiado" por um instante. */
+function useCopy(onNotify: (m: string) => void) {
   const [copied, setCopied] = useState(false)
-  const time = new Date(item.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-  const isImage = item.kind === 'file' && item.mime.startsWith('image/')
-
-  async function copy() {
-    if (item.kind !== 'text') return
-    if (await copyText(item.text)) {
+  async function copy(text: string) {
+    if (await copyText(text)) {
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-    } else props.onNotify('Não deu para copiar')
+    } else onNotify('Não deu para copiar')
   }
+  return [copied, copy] as const
+}
+
+function CodeBlock(props: { lang: string; code: string; onNotify: (m: string) => void }) {
+  const { html, label } = useMemo(() => highlight(props.code, props.lang), [props.code, props.lang])
+  const [copied, copy] = useCopy(props.onNotify)
+  return (
+    <div className="code-block">
+      <div className="code-head">
+        <span>{label}</span>
+        <button className="btn btn-ghost" onClick={() => copy(props.code)} aria-label="Copiar código">
+          {copied ? <Check size={14} /> : <Copy size={14} />}
+          <span className="hide-xs">{copied ? 'Copiado' : 'Copiar'}</span>
+        </button>
+      </div>
+      <pre>
+        <code className="hljs" dangerouslySetInnerHTML={{ __html: html }} />
+      </pre>
+    </div>
+  )
+}
+
+function Message(props: { item: Item; mine: boolean; fileUrl: string; onDelete: () => void; onNotify: (m: string) => void }) {
+  const { item } = props
+  const [copied, copy] = useCopy(props.onNotify)
+  const time = new Date(item.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const isImage = item.kind === 'file' && item.mime.startsWith('image/')
+  const segments = useMemo(() => (item.kind === 'text' ? parseMessage(item.text) : []), [item])
+  const hasCode = segments.some((s) => s.kind === 'code')
+  // Mensagem que é só um bloco de código: "Copiar" pega o código sem as ```.
+  const only = segments.length === 1 && segments[0].kind === 'code' ? segments[0].code : null
 
   return (
-    <article className={`msg${props.mine ? ' mine' : ''}`}>
+    <article className={`msg${props.mine ? ' mine' : ''}${hasCode ? ' has-code' : ''}`}>
       <span className="meta">
         {props.mine ? 'Você' : 'Outro aparelho'} · {time}
       </span>
       <div className="bubble">
         {item.kind === 'text' ? (
-          <p className="text">
-            <Linkified text={item.text} />
-          </p>
+          <div className="text">
+            {segments.map((s, i) =>
+              s.kind === 'code' ? (
+                <CodeBlock key={i} lang={s.lang} code={s.code} onNotify={props.onNotify} />
+              ) : (
+                <p key={i}>
+                  <Linkified text={s.text} />
+                </p>
+              ),
+            )}
+          </div>
         ) : (
           <>
             {isImage && (
@@ -641,7 +737,7 @@ function Message(props: { item: Item; mine: boolean; fileUrl: string; onDelete: 
         )}
         <div className="actions">
           {item.kind === 'text' ? (
-            <button className="btn btn-ghost copy" onClick={copy}>
+            <button className="btn btn-ghost copy" onClick={() => item.kind === 'text' && copy(only ?? item.text)}>
               {copied ? <Check size={15} /> : <Copy size={15} />}
               {copied ? 'Copiado' : 'Copiar'}
             </button>

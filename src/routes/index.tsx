@@ -4,7 +4,7 @@ import { ArrowRight, ChevronDown, ClipboardPaste, Dices, Lock, PenLine, Smartpho
 import { enterRoom } from '../lib/api'
 import { SLUG_RE, errorMessage, normalizeSlug, randomSlug, saveToken } from '../lib/client'
 import { FAQ, SITE_URL, homeJsonLd } from '../lib/seo'
-import { Footer, QrFloat, useCurrentUrl, useToast } from '../components/ui'
+import { Footer, QrFloat, ThemeToggle, useCurrentUrl, useToast } from '../components/ui'
 
 export const Route = createFileRoute('/')({
   head: () => ({
@@ -64,6 +64,9 @@ function Home() {
 
   return (
     <div className="home">
+      <header className="site-header">
+        <ThemeToggle />
+      </header>
       <main>
         <section className="hero">
           <p className="wordmark" aria-label="copy.">

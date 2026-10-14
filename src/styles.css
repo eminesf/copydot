@@ -21,11 +21,24 @@
   --font: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
   --page: 760px;
+  /* cores do código (estilo GitHub) */
+  --code-bg: #f6f8fa;
+  --hl-comment: #6e7781;
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-number: #0550ae;
+  --hl-title: #8250df;
+  --hl-type: #953800;
+  --hl-tag: #116329;
+  --hl-add: #e6ffec;
+  --hl-del: #ffebe9;
   color-scheme: light;
 }
 
+/* Escuro: segue o sistema, a não ser que o botão de tema tenha forçado o claro.
+   As duas regras abaixo são iguais (uma para o sistema, outra para o botão). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #0b1120;
     --surface: #111827;
     --surface-2: #1e293b;
@@ -40,8 +53,46 @@
     --danger: #f87171;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -8px rgb(0 0 0 / 0.5);
     --shadow-accent: 0 12px 40px -12px rgb(59 130 246 / 0.35);
+    --code-bg: #0d1117;
+    --hl-comment: #8b949e;
+    --hl-keyword: #ff7b72;
+    --hl-string: #a5d6ff;
+    --hl-number: #79c0ff;
+    --hl-title: #d2a8ff;
+    --hl-type: #ffa657;
+    --hl-tag: #7ee787;
+    --hl-add: rgb(46 160 67 / 0.15);
+    --hl-del: rgb(248 81 73 / 0.15);
     color-scheme: dark;
   }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0b1120;
+  --surface: #111827;
+  --surface-2: #1e293b;
+  --text: #f1f5f9;
+  --text-2: #cbd5e1;
+  --muted: #94a3b8;
+  --border: #1f2a3c;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-soft: rgb(59 130 246 / 0.12);
+  --accent-line: rgb(59 130 246 / 0.35);
+  --danger: #f87171;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --shadow-accent: 0 12px 40px -12px rgb(59 130 246 / 0.35);
+  --code-bg: #0d1117;
+  --hl-comment: #8b949e;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-title: #d2a8ff;
+  --hl-type: #ffa657;
+  --hl-tag: #7ee787;
+  --hl-add: rgb(46 160 67 / 0.15);
+  --hl-del: rgb(248 81 73 / 0.15);
+  color-scheme: dark;
 }
 
 *,
@@ -201,6 +252,7 @@ button {
 /* ---------- home ---------- */
 
 .home {
+  position: relative;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -209,9 +261,13 @@ button {
     var(--bg);
 }
 
+/* fica por cima do hero, sem empurrar o layout */
 .site-header {
-  padding: max(20px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 0
-    max(24px, env(safe-area-inset-left));
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 0 0;
 }
 
 .home main {
@@ -817,12 +873,142 @@ input:focus-visible + .switch {
 }
 
 .bubble .text {
-  margin: 0;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
   max-height: 22rem;
   overflow: auto;
   font-size: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bubble .text p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* mensagem com código ganha mais largura (código não quebra linha) */
+.msg.has-code {
+  max-width: min(100%, 720px);
+}
+
+.msg.has-code .bubble {
+  width: 100%;
+}
+
+.msg.has-code .text {
+  max-height: 32rem;
+}
+
+/* ---------- blocos de código ---------- */
+
+.code-block {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  overflow: hidden;
+}
+
+.code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px 2px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.code-head .btn {
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+  gap: 5px;
+}
+
+.code-block pre {
+  margin: 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+  font: 13px/1.55 var(--mono);
+  tab-size: 2;
+}
+
+.hljs {
+  color: var(--text);
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--hl-comment);
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-doctag,
+.hljs-template-tag,
+.hljs-meta .hljs-keyword {
+  color: var(--hl-keyword);
+}
+
+.hljs-string,
+.hljs-regexp,
+.hljs-meta .hljs-string {
+  color: var(--hl-string);
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-attr,
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-property,
+.hljs-meta,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id {
+  color: var(--hl-number);
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-symbol {
+  color: var(--hl-title);
+}
+
+.hljs-built_in,
+.hljs-type,
+.hljs-params {
+  color: var(--hl-type);
+}
+
+.hljs-name,
+.hljs-tag,
+.hljs-bullet,
+.hljs-selector-pseudo {
+  color: var(--hl-tag);
+}
+
+.hljs-addition {
+  color: var(--hl-tag);
+  background: var(--hl-add);
+}
+
+.hljs-deletion {
+  color: var(--hl-keyword);
+  background: var(--hl-del);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
 }
 
 .bubble .preview {
@@ -928,6 +1114,31 @@ input:focus-visible + .switch {
 
 .toolbar label.btn {
   cursor: pointer;
+}
+
+.toolbar .btn.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.lang-select {
+  height: 32px;
+  max-width: 140px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font: 600 13px var(--font);
+  cursor: pointer;
+}
+
+.composer textarea.code {
+  font-family: var(--mono);
+  font-size: 14px;
+  tab-size: 2;
+  white-space: pre;
+  overflow-x: auto;
 }
 
 .composer textarea {

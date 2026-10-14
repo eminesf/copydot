@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Link2, Share2 } from 'lucide-react'
+import { Link2, Moon, Share2, Sun } from 'lucide-react'
 import { renderSVG } from 'uqr'
 import { copyText } from '../lib/client'
 
@@ -102,6 +102,42 @@ export function QrFloat(props: { url: string; label: string; onNotify: (msg: str
         </button>
       </div>
     </aside>
+  )
+}
+
+type Theme = 'light' | 'dark'
+const THEME_KEY = 'copy:theme'
+
+// Roda no <head> antes da página pintar: aplica o tema salvo sem "piscar".
+// Sem escolha salva, nada é marcado e o CSS segue o tema do sistema.
+export const THEME_SCRIPT = `try{var t=localStorage.getItem('${THEME_KEY}');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`
+
+function currentTheme(): Theme {
+  const forced = document.documentElement.dataset.theme
+  if (forced === 'light' || forced === 'dark') return forced
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+/** Alterna claro/escuro e lembra a escolha neste navegador. */
+export function ThemeToggle({ className = 'btn btn-ghost btn-icon' }: { className?: string }) {
+  // null até montar: no SSR não dá para saber o tema, então nem o ícone.
+  const [theme, setTheme] = useState<Theme | null>(null)
+  useEffect(() => setTheme(currentTheme()), [])
+
+  function toggle() {
+    const next: Theme = currentTheme() === 'dark' ? 'light' : 'dark'
+    document.documentElement.dataset.theme = next
+    try {
+      localStorage.setItem(THEME_KEY, next)
+    } catch {}
+    setTheme(next)
+  }
+
+  const label = theme === 'dark' ? 'Usar tema claro' : 'Usar tema escuro'
+  return (
+    <button type="button" className={className} aria-label={label} title={label} onClick={toggle}>
+      {theme === 'dark' ? <Sun size={19} /> : theme === 'light' ? <Moon size={19} /> : null}
+    </button>
   )
 }
 
