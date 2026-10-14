@@ -44,7 +44,3 @@ export const deleteItem = createServerFn({ method: 'POST' })
     id: str(d.id, 'id'),
   }))
   .handler(({ data }) => run(() => rooms.deleteItem(data.slug, data.token, data.id)))
-
-export const clearRoom = createServerFn({ method: 'POST' })
-  .validator((d: Auth) => ({ slug: str(d.slug, 'slug'), token: str(d.token, 'token') }))
-  .handler(({ data }) => run(() => rooms.clearRoom(data.slug, data.token)))

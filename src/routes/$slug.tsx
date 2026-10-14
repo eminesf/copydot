@@ -18,7 +18,7 @@ import {
   Timer,
   Trash2,
 } from 'lucide-react'
-import { clearRoom, deleteItem, enterRoom, sendText } from '../lib/api'
+import { deleteItem, enterRoom, sendText } from '../lib/api'
 import {
   SLUG_RE,
   copyText,
@@ -420,10 +420,8 @@ function Room({ slug, token, onExpired }: { slug: string; token: string; onExpir
       <div className="composer-wrap">
         <Composer
           uploads={uploads}
-          canClear={items.length > 0}
           onSend={(text) => call(() => sendText({ data: { slug, token, by: me, text } }))}
           onFiles={upload}
-          onClear={() => call(() => clearRoom({ data: { slug, token } }))}
         />
         <p className="drop-note desktop-only">Arraste arquivos para cá ou cole uma imagem com Ctrl+V</p>
       </div>
@@ -470,14 +468,11 @@ function ConnectSheet(props: { url: string; slug: string; onClose: () => void; o
 
 function Composer(props: {
   uploads: { id: number; name: string; pct: number }[]
-  canClear: boolean
   onSend: (text: string) => Promise<boolean>
   onFiles: (files: File[]) => void
-  onClear: () => void
 }) {
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
-  const [armed, setArmed] = useState(false)
   // Modo código: o texto vai como ```lang ... ``` e aparece formatado.
   const [code, setCode] = useState(false)
   const [lang, setLang] = useState('')
@@ -490,12 +485,6 @@ function Composer(props: {
     el.style.height = 'auto'
     el.style.height = `${Math.min(el.scrollHeight, 200)}px`
   }, [text])
-
-  useEffect(() => {
-    if (!armed) return
-    const t = setTimeout(() => setArmed(false), 3000)
-    return () => clearTimeout(t)
-  }, [armed])
 
   async function send() {
     if (!text.trim() || sending) return
@@ -587,19 +576,6 @@ function Composer(props: {
               </option>
             ))}
           </select>
-        )}
-        <span className="spacer" />
-        {props.canClear && (
-          <button
-            type="button"
-            className={`btn btn-ghost btn-sm btn-danger${armed ? ' armed' : ''}`}
-            onClick={() => {
-              if (armed) props.onClear()
-              setArmed(!armed)
-            }}
-          >
-            <Trash2 size={15} /> <span className="lbl">{armed ? 'Confirmar' : 'Limpar tudo'}</span>
-          </button>
         )}
       </div>
 

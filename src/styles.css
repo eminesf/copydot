@@ -223,16 +223,6 @@ button {
   padding: 0;
 }
 
-.btn-danger {
-  color: var(--danger);
-}
-
-.btn-danger.armed {
-  background: var(--danger);
-  border-color: var(--danger);
-  color: #fff;
-}
-
 /* ---------- logo ---------- */
 
 .logo {
@@ -881,6 +871,11 @@ input:focus-visible + .switch {
   gap: 8px;
 }
 
+/* sem isso o flex encolhe o bloco de código e corta o fim em vez de rolar */
+.bubble .text > * {
+  flex-shrink: 0;
+}
+
 .bubble .text p {
   margin: 0;
   white-space: pre-wrap;
@@ -896,8 +891,9 @@ input:focus-visible + .switch {
   width: 100%;
 }
 
+/* cada bloco de código rola sozinho (cabeçalho com "Copiar" sempre visível) */
 .msg.has-code .text {
-  max-height: 32rem;
+  max-height: none;
 }
 
 /* ---------- blocos de código ---------- */
@@ -931,7 +927,9 @@ input:focus-visible + .switch {
 .code-block pre {
   margin: 0;
   padding: 10px 12px;
-  overflow-x: auto;
+  max-height: 26rem;
+  overflow: auto;
+  overscroll-behavior: contain;
   font: 13px/1.55 var(--mono);
   tab-size: 2;
 }
@@ -1106,10 +1104,6 @@ input:focus-visible + .switch {
   gap: 2px;
   padding: 6px 8px;
   border-bottom: 1px solid var(--border);
-}
-
-.toolbar .spacer {
-  flex: 1;
 }
 
 .toolbar label.btn {

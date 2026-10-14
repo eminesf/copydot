@@ -151,11 +151,6 @@ export function deleteItem(slug: string, token: string, id: string) {
   removeItem(authed(slug, token), id)
 }
 
-export function clearRoom(slug: string, token: string) {
-  const room = authed(slug, token)
-  for (const item of [...room.items]) removeItem(room, item.id)
-}
-
 /** Inscreve um ouvinte (uma aba aberta). Retorna a função de saída. */
 export function subscribe(slug: string, token: string, send: Subscriber) {
   const room = authed(slug, token)
